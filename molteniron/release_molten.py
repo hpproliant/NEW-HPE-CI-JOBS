@@ -1,12 +1,15 @@
-#!/usr/bin/env python
+#!/usr/bin/python3
 import subprocess
 import json
 import sys
 
-print "Molteniron release node"
+print("Molteniron release node...")
 owner_name = sys.argv[1]
-out = subprocess.check_output(['bash', '-c', "molteniron -c /tmp/molteniron/molteniron release '%s'" % owner_name])
-out_d = json.loads(out)
-if int(out_d['status']) == 200:
-    subprocess.call(['rm', '-f', '/tmp/hardware_info'])
-    print "Node released Successfully"
+try:
+    out = subprocess.check_output(['bash', '-c', "molteniron release '%s'" % owner_name])
+    out_d = json.loads(out)
+    if int(out_d['status']) == 200:
+        flag = 0
+        print("Node released Successfully")
+except:
+    print("No node to release.")

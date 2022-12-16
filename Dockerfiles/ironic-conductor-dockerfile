@@ -3,4 +3,4 @@ USER root
 ENV http_proxy http://web-proxy.sgp.hpecorp.net:8080
 ENV https_proxy http://web-proxy.sgp.hpecorp.net:8080
 RUN cd /citest/ironic; git checkout master; git pull origin master; git fetch https://review.opendev.org/openstack/ironic reference && git cherry-pick FETCH_HEAD; pip3 install .
-ENTRYPOINT ["dumb-init", "--single-child", "--"]
+ENTRYPOINT ["dumb-init", "--single-child", "--", "kolla_start"]
