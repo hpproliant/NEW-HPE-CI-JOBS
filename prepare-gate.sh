@@ -20,8 +20,3 @@ systemctl start openvswitch.service
 systemctl start neutron-server.service neutron-openvswitch-agent.service neutron-dhcp-agent.service neutron-metadata-agent.service neutron-ovs-cleanup.service
 sleep 5
 openstack network create  --provider-network-type flat --provider-physical-network provider --share baremetal
-neutron subnet-create --name ext-subnet --allocation-pool start=169.16.1.111,end=169.16.1.112 --disable-dhcp --gateway 169.16.1.40 baremetal 169.16.1.0/24
-
-echo "Configure Tempest."
-net_id=$(neutron net-list -F id -f value)
-sed -i "s/11.11.11.11.11/$net_id/g" /home/citest/gate-test/tempest/etc/tempest.conf

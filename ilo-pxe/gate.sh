@@ -6,10 +6,9 @@ set -o pipefail
 
 ilo_ip=$(cat /home/citest/hardware_info | awk '{print $1}')
 mac=$(cat /home/citest/hardware_info | awk '{print $2}')
+neutron subnet-create --name ext-subnet --allocation-pool start=169.16.1.113,end=169.16.1.114 --disable-dhcp --gateway 169.16.1.40 baremetal 169.16.1.0/24
 
-neutron subnet-create --name ext-subnet --allocation-pool start=169.16.1.111,end=169.16.1.112 --disable-dhcp --gateway 169.16.1.40 baremetal 169.16.1.0/24
-
-openstack baremetal node create --driver ilo --driver-info ilo_address=$ilo_ip --driver-info ilo_username=Administrator --driver-info ilo_password=weg0th@ce@r --driver-info ilo_verify_ca=False --boot-interface ilo-virtual-media --deploy-interface direct
+openstack baremetal node create --driver ilo --driver-info ilo_address=$ilo_ip --driver-info ilo_username=Administrator --driver-info ilo_password=weg0th@ce@r --driver-info ilo_verify_ca=False --boot-interface ilo-ipxe --deploy-interface direct
 
 NODE=$(openstack baremetal node list | grep -v UUID | grep "\w" | awk '{print $2}' | tail -n1)
 
@@ -30,4 +29,4 @@ cd /home/citest/tempest
 export OS_TEST_TIMEOUT=3000
 net_id=$(neutron net-list -F id -f value)
 sed -i "s/11.11.11.11.11/$net_id/g" /home/citest/gate-test/tempest/etc/tempest.conf
-sudo -E tox -e all -- ironic_standalone.test_basic_ops.BaremetalIloDirectWholediskHttpLink.test_ip_access_to_server
+sudo tox -e all -- ironic_standalone.test_basic_ops.BaremetalIloIPxeWholediskHttpLink.test_ip_access_to_server
