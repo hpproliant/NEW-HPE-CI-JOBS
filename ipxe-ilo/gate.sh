@@ -4,6 +4,8 @@ set -e
 set -x
 set -o pipefail
 
+echo "***********Running ipxe-ilo gate**********"
+
 ilo_ip=$(cat /home/citest/hardware_info | awk '{print $1}')
 mac=$(cat /home/citest/hardware_info | awk '{print $2}')
 neutron subnet-create --name ext-subnet --allocation-pool start=169.16.1.113,end=169.16.1.114 --disable-dhcp --gateway 169.16.1.40 baremetal 169.16.1.0/24
@@ -30,3 +32,5 @@ export OS_TEST_TIMEOUT=3000
 net_id=$(neutron net-list -F id -f value)
 sed -i "s/11.11.11.11.11/$net_id/g" /home/citest/gate-test/tempest/etc/tempest.conf
 sudo tox -e all -- ironic_standalone.test_basic_ops.BaremetalIloIPxeWholediskHttpLink.test_ip_access_to_server
+
+echo "***********Successfully passed ipxe-ilo gate**********"
