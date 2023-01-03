@@ -16,7 +16,7 @@ openstack endpoint create --region RegionOne network public http://$myip:9696
 openstack endpoint create --region RegionOne network internal http://$myip:9696
 openstack endpoint create --region RegionOne network admin http://$myip:9696
 neutron-db-manage --config-file /etc/neutron/neutron.conf --config-file /etc/neutron/plugins/ml2/ml2_conf.ini upgrade head
-systemctl start openvswitch.service
-systemctl start neutron-server.service neutron-openvswitch-agent.service neutron-dhcp-agent.service neutron-metadata-agent.service neutron-ovs-cleanup.service
+sudo systemctl start openvswitch.service
+sudo systemctl start neutron-server.service neutron-openvswitch-agent.service neutron-dhcp-agent.service neutron-metadata-agent.service neutron-ovs-cleanup.service
 sleep 5
 openstack network create  --provider-network-type flat --provider-physical-network provider --share baremetal
