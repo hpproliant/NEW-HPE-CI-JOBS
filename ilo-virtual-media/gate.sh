@@ -8,8 +8,11 @@ echo "***********Running ilo-virtual-media gate**********"
 
 ilo_ip=$(cat /home/citest/hardware_info | awk '{print $1}')
 mac=$(cat /home/citest/hardware_info | awk '{print $2}')
+pool=$(cat /home/zuul/hardware_info | awk '{print $3}')
+str=$(echo $pool|cut -d "," -f 1) 
+end=$(echo $pool|cut -d "," -f 2) 
 
-neutron subnet-create --name ext-subnet --allocation-pool start=169.16.1.111,end=169.16.1.112 --disable-dhcp --gateway 169.16.1.40 baremetal 169.16.1.0/24
+neutron subnet-create --name ext-subnet --allocation-pool start=$str,end=$end --disable-dhcp --gateway 169.16.1.40 baremetal 169.16.1.0/24
 
 openstack baremetal node create --driver ilo --driver-info ilo_address=$ilo_ip --driver-info ilo_username=Administrator --driver-info ilo_password=weg0th@ce@r --driver-info ilo_verify_ca=False --boot-interface ilo-virtual-media --deploy-interface direct
 
