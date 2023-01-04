@@ -9,7 +9,6 @@ try:
     out = subprocess.check_output(['bash', '-c', "molteniron release '%s'" % owner_name])
     out_d = json.loads(out)
     if int(out_d['status']) == 200:
-        flag = 0
         print("Node released Successfully")
 except:
     print("No node to release.")
