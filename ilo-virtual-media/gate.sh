@@ -8,7 +8,7 @@ echo "***********Running ilo-virtual-media gate**********"
 
 ilo_ip=$(cat /home/citest/hardware_info | awk '{print $1}')
 mac=$(cat /home/citest/hardware_info | awk '{print $2}')
-pool=$(cat /home/zuul/hardware_info | awk '{print $3}')
+pool=$(cat /home/citest/hardware_info | awk '{print $3}')
 str=$(echo $pool|cut -d "," -f 1) 
 end=$(echo $pool|cut -d "," -f 2) 
 
