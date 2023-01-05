@@ -10,7 +10,7 @@ nodepool = sys.argv[2]
 hardware_info = open("/home/citest/hardware_info", "w")
 while True:
     try:
-        out = json.loads(subprocess.check_output(['bash', '-c', "molteniron allocate %s 1 %s" %(owner_name, nodepool)])
+        out = json.loads(subprocess.check_output(['bash', '-c', "molteniron allocate %s 1 %s" %(owner_name, nodepool)]))
         if int(d['status']) == 200:
             node = out['nodes'][list(out['nodes'].keys())[0]]
             blob = json.loads(node['blob'])
