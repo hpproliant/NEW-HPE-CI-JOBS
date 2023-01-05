@@ -8,7 +8,7 @@ echo "Deploy Kolla ansible."
 kolla-ansible -i /home/citest/all-in-one deploy
 
 echo "Configure Neutron."
-myip=$(ip -f inet addr show eth1 | sed -En -e 's/.*inet ([0-9.]+).*/\1/p')
+myip=$(ip -f inet addr show eth0 | sed -En -e 's/.*inet ([0-9.]+).*/\1/p')
 openstack user create --domain default --password 12iso*help neutron
 openstack role add --project service --user neutron admin
 openstack service create --name neutron --description "OpenStack Networking" network
