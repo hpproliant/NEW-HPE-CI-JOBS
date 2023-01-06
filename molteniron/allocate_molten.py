@@ -16,6 +16,7 @@ while True:
         if int(out['status']) == 200:
             node = out['nodes'][list(out['nodes'].keys())[0]]
             if sflag == "strict" and node['node_pool'] != nodepool:
+                subprocess.check_output(['bash', '-c', "molteniron release '%s'" % owner_name])
                 raise Exception('No nodes')
             blob = json.loads(node['blob'])
             ip = node['ipmi_ip']
