@@ -8,8 +8,11 @@ echo "***********Running redfish-driver gate**********"
 
 ilo_ip=$(cat /home/citest/hardware_info | awk '{print $1}')
 mac=$(cat /home/citest/hardware_info | awk '{print $2}')
+pool=$(cat /home/citest/hardware_info | awk '{print $3}')
+str=$(echo $pool|cut -d "," -f 1)
+end=$(echo $pool|cut -d "," -f 2)
 
-neutron subnet-create --name ext-subnet --allocation-pool start=169.16.1.115,end=169.16.1.116 --disable-dhcp --gateway 169.16.1.40 baremetal 169.16.1.0/24
+neutron subnet-create --name ext-subnet --allocation-pool start=$str,end=$end --disable-dhcp --gateway 169.16.1.40 baremetal 169.16.1.0/24
 
 openstack baremetal node create --driver redfish --driver-info redfish_address=$ilo_ip --driver-info redfish_username=Administrator --driver-info redfish_password=weg0th@ce@r --driver-info console_port=5000 --driver-info redfish_verify_ca="False" --driver-info redfish_system_id=/redfish/v1/Systems/1 --boot-interface redfish-virtual-media --deploy-interface direct
 
@@ -28,7 +31,7 @@ openstack baremetal node provide $NODE
 openstack baremetal node power off $NODE
 
 # Run the tempest test.
-cd /home/citest/tempest
+cd /home/citest/gate-test/tempest
 export OS_TEST_TIMEOUT=3000
 net_id=$(neutron net-list -F id -f value)
 sed -i "s/11.11.11.11.11/$net_id/g" /home/citest/gate-test/tempest/etc/tempest.conf
