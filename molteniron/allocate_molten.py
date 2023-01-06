@@ -7,12 +7,16 @@ import sys
 print("Molteniron dynamic allocation of node")
 owner_name = sys.argv[1]
 nodepool = sys.argv[2]
+sflag = sys.argv[3]
+
 hardware_info = open("/home/citest/hardware_info", "w")
 while True:
     try:
         out = json.loads(subprocess.check_output(['bash', '-c', "molteniron allocate %s 1 %s" %(owner_name, nodepool)]))
         if int(out['status']) == 200:
             node = out['nodes'][list(out['nodes'].keys())[0]]
+            if sflag == "strict" and node['node_pool'] != nodepool:
+                raise Exception('No nodes')
             blob = json.loads(node['blob'])
             ip = node['ipmi_ip']
             hardware_info.write(ip + " ")

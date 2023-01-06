@@ -4,7 +4,7 @@ set -e
 set -x
 set -o pipefail
 
-echo "***********Running redfish-driver gate**********"
+echo "***********Running redfish-virtual-media gate**********"
 
 ilo_ip=$(cat /home/citest/hardware_info | awk '{print $1}')
 mac=$(cat /home/citest/hardware_info | awk '{print $2}')
@@ -35,6 +35,6 @@ cd /home/citest/gate-test/tempest
 export OS_TEST_TIMEOUT=3000
 net_id=$(neutron net-list -F id -f value)
 sed -i "s/11.11.11.11.11/$net_id/g" /home/citest/gate-test/tempest/etc/tempest.conf
-sudo tox -e all -- ironic_standalone.test_basic_ops.BaremetalRedfishDirectWholediskHttpLink.test_ip_access_to_server
+sudo -E stestr -v run --serial ironic_standalone.test_basic_ops.BaremetalRedfishDirectWholediskHttpLink.test_ip_access_to_server
 
-echo "***********Successfully passed redfish-driver gate**********"
+echo "***********Successfully passed redfish-virtual-media gate**********"
