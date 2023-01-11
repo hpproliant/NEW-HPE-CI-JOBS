@@ -26,6 +26,8 @@ openstack baremetal node set --property cpus=1 --property memory_mb=24288 --prop
 
 openstack baremetal node manage $NODE
 
+sleep 10
+
 openstack baremetal node provide $NODE
 
 openstack baremetal node power off $NODE

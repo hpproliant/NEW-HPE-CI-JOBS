@@ -8,7 +8,16 @@ echo "***********Running ilo-ipxe gate**********"
 
 ilo_ip=$(cat /home/citest/hardware_info | awk '{print $1}')
 mac=$(cat /home/citest/hardware_info | awk '{print $2}')
-neutron subnet-create --name ext-subnet --allocation-pool start=169.16.1.113,end=169.16.1.114 --disable-dhcp --gateway 169.16.1.40 baremetal 169.16.1.0/24
+pool=$(cat /home/citest/hardware_info | awk '{print $3}')
+str=$(echo $pool|cut -d "," -f 1)
+end=$(echo $pool|cut -d "," -f 2)
+sudo sed -i 's/dhcp_provider = none/dhcp_provider = dnsmasq/g' /etc/kolla/ironic-conductor/ironic.conf
+
+docker restart ironic_conductor
+
+sleep 10
+
+neutron subnet-create --name ext-subnet --allocation-pool start=$str,end=$end --disable-dhcp --gateway 169.16.1.40 baremetal 169.16.1.0/24
 
 openstack baremetal node create --driver ilo --driver-info ilo_address=$ilo_ip --driver-info ilo_username=Administrator --driver-info ilo_password=weg0th@ce@r --driver-info ilo_verify_ca=False --boot-interface ilo-ipxe --deploy-interface direct
 
@@ -21,6 +30,8 @@ openstack baremetal port create --node $NODE $mac
 openstack baremetal node set --property cpus=1 --property memory_mb=24288 --property local_gb=40 --property cpu_arch=x86_64 $NODE
 
 openstack baremetal node manage $NODE
+
+sleep 10
 
 openstack baremetal node provide $NODE
 
