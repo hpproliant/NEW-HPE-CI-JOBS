@@ -9,6 +9,25 @@ echo "*********Started running 'ilo5-uefi-https' gate*************"
 ilo_ip=$(cat /home/citest/hardware_info | awk '{print $1}')
 mac=$(cat /home/citest/hardware_info | awk '{print $2}')
 
+echo "Configure external DHCP."
+cat <<EOF >/tmp/dhcpd.conf
+allow booting;
+default-lease-time 600;
+max-lease-time 7200;
+
+subnet 169.16.1.0 netmask 255.255.255.0 {
+        deny unknown-clients;
+}
+
+host ilo {
+                hardware ethernet $mac;
+                fixed-address $end;
+}
+EOF
+sudo cp /tmp/dhcpd.conf /etc/dhcp/dhcpd.conf
+sudo systemctl restart dhcpd.service
+
+
 # This part will test while testing
 python3 /tmp/uefi-https/HPE-CI-JOBS/ilo5-uefi-https/files/ilo5_upload_cert.py $ilo_ip
 

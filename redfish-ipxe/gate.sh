@@ -6,10 +6,43 @@ set -o pipefail
 
 echo "***********Running redfish-ipxe gate**********"
 
+myip=$(ip -f inet addr show eth0 | sed -En -e 's/.*inet ([0-9.]+).*/\1/p')
 ilo_ip=$(cat /home/citest/hardware_info | awk '{print $1}')
 mac=$(cat /home/citest/hardware_info | awk '{print $2}')
+pool=$(cat /home/citest/hardware_info | awk '{print $3}')
+str=$(echo $pool|cut -d "," -f 1)
+end=$(echo $pool|cut -d "," -f 2)
+sudo sed -i 's/dhcp_provider = none/dhcp_provider = dnsmasq/g' /etc/kolla/ironic-conductor/ironic.conf
+docker restart ironic_conductor
+
+echo "Configure external DHCP."
+cat <<EOF >/tmp/dhcpd.conf
+allow booting;
+default-lease-time 600;
+max-lease-time 7200;
+
+subnet 169.16.1.0 netmask 255.255.255.0 {
+        deny unknown-clients;
+}
+
+host ilo {
+                hardware ethernet $mac;
+                fixed-address $end;
+                filename "ipxe.efi";
+                next-server $myip;
+                if exists user-class and option user-class = "iPXE" {
+                        filename "http://$myip:8089/boot.ipxe";
+                } else {
+                        filename "ipxe.efi";
+                }
+}
+EOF
+sudo cp /tmp/dhcpd.conf /etc/dhcp/dhcpd.conf
+sudo systemctl restart dhcpd.service
 
 neutron subnet-create --name ext-subnet --allocation-pool start=169.16.1.117,end=169.16.1.118 --disable-dhcp --gateway 169.16.1.40 baremetal 169.16.1.0/24
+
+sleep 5
 
 openstack baremetal node create --driver redfish --driver-info redfish_address=$ilo_ip --driver-info redfish_username=Administrator --driver-info redfish_password=weg0th@ce@r --driver-info console_port=5000 --deploy-interface=direct --boot-interface=ipxe --driver-info redfish_verify_ca="False" --driver-info redfish_system_id=/redfish/v1/Systems/1
 

@@ -12,6 +12,24 @@ pool=$(cat /home/citest/hardware_info | awk '{print $3}')
 str=$(echo $pool|cut -d "," -f 1) 
 end=$(echo $pool|cut -d "," -f 2) 
 
+echo "Configure external DHCP."
+cat <<EOF >/tmp/dhcpd.conf
+allow booting;
+default-lease-time 600;
+max-lease-time 7200;
+
+subnet 169.16.1.0 netmask 255.255.255.0 {
+        deny unknown-clients;
+}
+
+host ilo {
+                hardware ethernet $mac;
+                fixed-address $end;
+}
+EOF
+sudo cp /tmp/dhcpd.conf /etc/dhcp/dhcpd.conf
+sudo systemctl restart dhcpd.service
+
 neutron subnet-create --name ext-subnet --allocation-pool start=$str,end=$end --disable-dhcp --gateway 169.16.1.40 baremetal 169.16.1.0/24
 
 openstack baremetal node create --driver ilo --driver-info ilo_address=$ilo_ip --driver-info ilo_username=Administrator --driver-info ilo_password=weg0th@ce@r --driver-info ilo_verify_ca=False --boot-interface ilo-virtual-media --deploy-interface direct
