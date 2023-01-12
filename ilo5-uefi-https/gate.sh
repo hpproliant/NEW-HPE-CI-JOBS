@@ -26,7 +26,7 @@ host ilo {
 EOF
 sudo cp /tmp/dhcpd.conf /etc/dhcp/dhcpd.conf
 sudo systemctl restart dhcpd.service
-
+docker stop ironic_dnsmasq
 
 # This part will test while testing
 python3 /tmp/uefi-https/HPE-CI-JOBS/ilo5-uefi-https/files/ilo5_upload_cert.py $ilo_ip
