@@ -14,6 +14,7 @@ str=$(echo $pool|cut -d "," -f 1)
 end=$(echo $pool|cut -d "," -f 2)
 sudo sed -i 's/dhcp_provider = none/dhcp_provider = dnsmasq/g' /etc/kolla/ironic-conductor/ironic.conf
 docker restart ironic_conductor
+docker stop ironic_dnsmasq
 
 echo "Configure external DHCP."
 cat <<EOF >/tmp/dhcpd.conf
@@ -63,7 +64,7 @@ openstack baremetal node provide $NODE
 openstack baremetal node power off $NODE
 
 # Run the tempest test.
-cd /home/citest/tempest
+cd /home/citest/gate-test/tempest
 export OS_TEST_TIMEOUT=3000
 net_id=$(neutron net-list -F id -f value)
 sed -i "s/11.11.11.11.11/$net_id/g" /home/citest/gate-test/tempest/etc/tempest.conf
