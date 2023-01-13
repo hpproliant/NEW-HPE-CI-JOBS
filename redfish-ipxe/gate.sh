@@ -6,6 +6,10 @@ set -o pipefail
 
 echo "***********Running redfish-ipxe gate**********"
 
+echo "Deploy ironic."
+export ANSIBLE_LOG_PATH=/home/citest/gate_logs/ansible_ironic_reconfigure.log 
+kolla-ansible -i /home/citest/all-in-one deploy -t ironic
+
 myip=$(ip -f inet addr show eth0 | sed -En -e 's/.*inet ([0-9.]+).*/\1/p')
 ilo_ip=$(cat /home/citest/hardware_info | awk '{print $1}')
 mac=$(cat /home/citest/hardware_info | awk '{print $2}')
@@ -68,6 +72,6 @@ cd /home/citest/gate-test/tempest
 export OS_TEST_TIMEOUT=3000
 net_id=$(neutron net-list -F id -f value)
 sed -i "s/11.11.11.11.11/$net_id/g" /home/citest/gate-test/tempest/etc/tempest.conf
-sudo -E stestr -v run --serial ironic_standalone.test_basic_ops.BaremetalRedfishIPxeWholediskHttpLink.test_ip_access_to_server
+sudo -E stestr -vvv --debug --log-file /home/citest/gate_logs/tox.logs run --serial ironic_standalone.test_basic_ops.BaremetalRedfishIPxeWholediskHttpLink.test_ip_access_to_server
 
 echo "***********Successfully passed redfish-ipxe gate**********"

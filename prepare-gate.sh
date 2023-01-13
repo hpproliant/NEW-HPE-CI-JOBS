@@ -4,8 +4,18 @@ set -e
 set -x
 set -o pipefail
 
+echo "Prepare docker images."
+docker tag citest/ironic-api:14.6.0 kolla/ironic-api:14.6.0
+docker tag citest/ironic-conductor:14.6.0 kolla/ironic-conductor:14.6.0
+
 echo "Deploy Kolla ansible."
+export ANSIBLE_LOG_PATH=/home/citest/gate_logs/ansible_kolla_deploy.log 
 kolla-ansible -i /home/citest/all-in-one deploy
+
+echo "Remove ironic containers."
+docker rm -f ironic_dnsmasq ironic_http ironic_inspector ironic_tftp ironic_api ironic_conductor
+docker rmi kolla/ironic-api:14.6.0
+docker rmi kolla/ironic-conductor:14.6.0
 
 echo "Configure Neutron."
 myip=$(ip -f inet addr show eth0 | sed -En -e 's/.*inet ([0-9.]+).*/\1/p')

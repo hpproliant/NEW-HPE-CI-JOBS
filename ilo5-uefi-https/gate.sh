@@ -6,6 +6,10 @@ set -o pipefail
 
 echo "*********Started running 'ilo5-uefi-https' gate*************"
 
+echo "Deploy ironic."
+export ANSIBLE_LOG_PATH=/home/citest/gate_logs/ansible_ironic_reconfigure.log 
+kolla-ansible -i /home/citest/all-in-one deploy -t ironic
+
 ilo_ip=$(cat /home/citest/hardware_info | awk '{print $1}')
 mac=$(cat /home/citest/hardware_info | awk '{print $2}')
 
