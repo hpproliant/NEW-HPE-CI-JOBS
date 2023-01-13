@@ -41,7 +41,7 @@ sudo cp /tmp/dhcpd.conf /etc/dhcp/dhcpd.conf
 sudo systemctl restart dhcpd.service
 docker stop ironic_dnsmasq
 
-neutron subnet-create --name ext-subnet --allocation-pool start=169.16.1.117,end=169.16.1.118 --disable-dhcp --gateway 169.16.1.40 baremetal 169.16.1.0/24
+neutron subnet-create --name ext-subnet --allocation-pool start=$str,end=$end --disable-dhcp --gateway 169.16.1.40 baremetal 169.16.1.0/24
 
 sleep 5
 
