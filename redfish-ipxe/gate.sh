@@ -63,7 +63,7 @@ openstack baremetal node provide $NODE
 openstack baremetal node power off $NODE
 
 # Run the tempest test.
-cd /home/citest/tempest
+cd /home/citest/gate-test/tempest
 export OS_TEST_TIMEOUT=3000
 net_id=$(neutron net-list -F id -f value)
 sed -i "s/11.11.11.11.11/$net_id/g" /home/citest/gate-test/tempest/etc/tempest.conf
