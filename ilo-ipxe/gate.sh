@@ -7,7 +7,8 @@ set -o pipefail
 echo "***********Running ilo-ipxe gate**********"
 
 echo "Deploy ironic."
-export ANSIBLE_LOG_PATH=/home/citest/gate_logs/ansible_ironic_reconfigure.log 
+export ANSIBLE_LOG_PATH=/home/citest/gate_logs/ansible_ironic_reconfigure.log
+sudo sed -i "s/enable_ironic: \"no\"/enable_ironic: \"yes\"/g" /etc/kolla/globals.yml 
 kolla-ansible -i /home/citest/all-in-one deploy -t ironic
 
 myip=$(ip -f inet addr show eth0 | sed -En -e 's/.*inet ([0-9.]+).*/\1/p')
