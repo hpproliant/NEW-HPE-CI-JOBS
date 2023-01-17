@@ -4,10 +4,6 @@ set -e
 set -x
 set -o pipefail
 
-echo "Deploy Kolla ansible."
-export ANSIBLE_LOG_PATH=/home/citest/gate_logs/ansible_kolla_deploy.log 
-kolla-ansible -i /home/citest/all-in-one deploy
-sleep 60
 echo "Configure Neutron."
 myip=$(ip -f inet addr show eth0 | sed -En -e 's/.*inet ([0-9.]+).*/\1/p')
 openstack user create --domain default --password 12iso*help neutron

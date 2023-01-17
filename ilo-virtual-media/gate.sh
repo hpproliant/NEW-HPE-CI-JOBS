@@ -6,11 +6,6 @@ set -o pipefail
 
 echo "***********Running ilo-virtual-media gate**********"
 
-echo "Deploy ironic."
-export ANSIBLE_LOG_PATH=/home/citest/gate_logs/ansible_ironic_reconfigure.log 
-sudo sed -i "s/enable_ironic: \"no\"/enable_ironic: \"yes\"/g" /etc/kolla/globals.yml
-kolla-ansible -i /home/citest/all-in-one deploy -t ironic
-
 ilo_ip=$(cat /home/citest/hardware_info | awk '{print $1}')
 mac=$(cat /home/citest/hardware_info | awk '{print $2}')
 pool=$(cat /home/citest/hardware_info | awk '{print $3}')
