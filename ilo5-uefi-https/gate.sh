@@ -12,6 +12,9 @@ kolla-ansible -i /home/citest/all-in-one deploy -t ironic
 
 ilo_ip=$(cat /home/citest/hardware_info | awk '{print $1}')
 mac=$(cat /home/citest/hardware_info | awk '{print $2}')
+pool=$(cat /home/citest/hardware_info | awk '{print $3}')
+str=$(echo $pool|cut -d "," -f 1) 
+end=$(echo $pool|cut -d "," -f 2) 
 
 echo "Configure external DHCP."
 cat <<EOF >/tmp/dhcpd.conf
@@ -32,20 +35,42 @@ sudo cp /tmp/dhcpd.conf /etc/dhcp/dhcpd.conf
 sudo systemctl restart dhcpd.service
 docker stop ironic_dnsmasq
 
-# This part will test while testing
-python3 /tmp/uefi-https/HPE-CI-JOBS/ilo5-uefi-https/files/ilo5_upload_cert.py $ilo_ip
+echo "Configure tls based webserver."
+mkdir /home/citest/files
+cd /home/citest/files
+wget --no-proxy http://169.16.1.40:9000/kesper-ipa.kernel
+wget --no-proxy http://169.16.1.40:9000/kesper-ipa.initramfs
+wget --no-proxy http://169.16.1.40:9000/ir-deploy-redfish.efiboot
+wget --no-proxy http://169.16.1.40:9000/rhel009_wholedisk_image.qcow2
+sudo cp /home/citest/NEW-HPE-CI-JOBS/ilo5-uefi-https/files/default.conf /home/citest/NEW-HPE-CI-JOBS/ilo5-uefi-https/files/nginx.conf /etc/nginx/conf.d/
+sudo rm -rf /etc/nginx/sites-*
+sudo systemctl restart nginx
 
-neutron subnet-create --name ext-subnet --allocation-pool start=169.16.1.119,end=169.16.1.120 --disable-dhcp --gateway 169.16.1.40 baremetal 169.16.1.0/24
+echo "Upload tls cert."
+mkdir /home/citest/ssl_files
+openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /home/citest/ssl_files/uefi_signed.key -out /home/citest/ssl_files/uefi_signed.crt -subj "/C=IN/ST=K/CN=$ip"
+python3 /home/citest/NEW-HPE-CI-JOBS/ilo5-uefi-https/files/ilo5_upload_cert.py $ip
+
+echo "Ironic changes."
+#sudo sed -i 's/dhcp_provider = none/dhcp_provider = dnsmasq/g' /etc/kolla/ironic-conductor/ironic.conf
+sudo sed -i '/^\[DEFAULT\]$/,/^\[/ s/^enabled = false/enabled = true/' /etc/kolla/ironic-conductor/ironic.conf
+
+
+docker restart ironic_conductor
+
+
+
+
+
+neutron subnet-create --name ext-subnet --allocation-pool start=$str,end=$end --disable-dhcp --gateway 169.16.1.40 baremetal 169.16.1.0/24
 
 openstack baremetal node create --driver ilo5 --driver-info ilo_address=$ilo_ip --driver-info ilo_username=Administrator --driver-info ilo_password=weg0th@ce@r --driver-info ilo_verify_ca=False --boot-interface ilo-uefi-https --deploy-interface direct --management-interface ilo5 
 
 NODE=$(openstack baremetal node list | grep -v UUID | grep "\w" | awk '{print $2}' | tail -n1)
 
-openstack baremetal node set --driver-info deploy_kernel=https://169.16.1.40:443/kesper-ipa.kernel --driver-info deploy_ramdisk=https://169.16.1.40:443/kesper-ipa.initramfs --driver-info bootloader=https://169.16.1.40:443/ir-deploy-redfish.efiboot --instance-info image_source=https://169.16.1.40:443/rhel009_wholedisk_image.qcow2 --instance-info image_checksum=6d2a8427a4608d1fcc7aa2daed8ad5c6 --instance-info root_gb=25  --property capabilities='boot_mode:uefi' $NODE
+openstack baremetal node set --driver-info deploy_kernel=https://$ip:443/kesper-ipa.kernel --driver-info deploy_ramdisk=https://$ip:443/kesper-ipa.initramfs --driver-info bootloader=https://$ip:443/ir-deploy-redfish.efiboot --instance-info image_source=https://$ip:443/rhel009_wholedisk_image.qcow2 --instance-info image_checksum=6d2a8427a4608d1fcc7aa2daed8ad5c6 --instance-info root_gb=25  --property capabilities='boot_mode:uefi' --property cpus=1 --property memory_mb=24288 --property local_gb=40 --property cpu_arch=x86_64 $NODE
 
 openstack baremetal port create --node $NODE $mac
-
-openstack baremetal node set --property cpus=1 --property memory_mb=24288 --property local_gb=40 --property cpu_arch=x86_64 $NODE
 
 openstack baremetal node manage $NODE
 
@@ -56,7 +81,7 @@ openstack baremetal node provide $NODE
 openstack baremetal node power off $NODE
 
 # Run the tempest test.
-cd /home/citest/tempest
+cd /home/citest/gate-test/tempest
 export OS_TEST_TIMEOUT=3000
 net_id=$(neutron net-list -F id -f value)
 sed -i "s/11.11.11.11.11/$net_id/g" /home/citest/gate-test/tempest/etc/tempest.conf

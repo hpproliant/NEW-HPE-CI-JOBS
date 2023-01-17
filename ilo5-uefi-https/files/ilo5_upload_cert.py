@@ -7,7 +7,7 @@ ilo_ip = sys.argv[1]
 cl=client.IloClient(ilo_ip, "Administrator", "weg0th@ce@r")
 
 #add certificate
-cl.add_tls_certificate(['/home/ubuntu/ssl_files/uefi_signed.crt'])
+cl.add_tls_certificate(['/home/citest/ssl_files/uefi_signed.crt'])
 time.sleep(10)
 
 print("Certificate upload completed. Now resetting the server.")
