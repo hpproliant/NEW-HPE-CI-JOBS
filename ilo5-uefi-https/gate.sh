@@ -33,21 +33,19 @@ sudo systemctl restart dhcpd.service
 docker stop ironic_dnsmasq
 
 echo "Configure tls based webserver."
-mkdir /home/citest/files
-cd /home/citest/files
-sudo wget --no-proxy http://169.16.1.40:9000/kesper-ipa.kernel -P /usr/share/nginx/html/
-sudo wget --no-proxy http://169.16.1.40:9000/kesper-ipa.initramfs -P /usr/share/nginx/html/
-sudo wget --no-proxy http://169.16.1.40:9000/ir-deploy-redfish.efiboot -P /usr/share/nginx/html/
-sudo wget --no-proxy http://169.16.1.40:9000/rhel009_wholedisk_image.qcow2 -P /usr/share/nginx/html/
-sudo chmod 0777 /usr/share/nginx/html/*
-sudo cp /home/citest/NEW-HPE-CI-JOBS/ilo5-uefi-https/files/nginx.conf /etc/nginx/conf.d/ 
-sudo rm -rf /etc/nginx/sites-*
 mkdir /home/citest/ssl_files
 openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /home/citest/ssl_files/uefi_signed.key -out /home/citest/ssl_files/uefi_signed.crt -subj "/C=IN/ST=K/CN=$my_ip"
-sudo systemctl restart nginx
+docker exec -it ironic_http mkdir /root/ssl_files
+docker cp /home/citest/ssl_files/uefi_signed.crt ironic_http:/root/ssl_files/
+docker cp /home/citest/ssl_files/uefi_signed.key ironic_http:/root/ssl_files/
+sudo rm -f /etc/kolla/ironic-http/httpd.conf
+sudo cp /home/citest/NEW-HPE-CI-JOBS/ilo5-uefi-https/files/httpd.conf /etc/kolla/ironic-http/httpd.conf
+sudo sed -i "s/8.8.8.8/$my_ip/g" /etc/kolla/ironic-http/httpd.conf
+docker restart ironic_http
 
 echo "Upload tls cert."
-python3 /home/citest/NEW-HPE-CI-JOBS/ilo5-uefi-https/files/ilo5_upload_cert.py $ilo_ip
+docker cp /home/citest/NEW-HPE-CI-JOBS/ilo5-uefi-https/files/add_tls.py ironic_conductor:/root/
+docker exec -it ironic_conductor python3 /root/add_tls.py $ilo_ip
 
 echo "Ironic changes."
 sudo sed -i '/^\[DEFAULT\]$/,/^\[/ s/^debug = True/webserver_verify_ca = \/home\/citest\/ssl_files\/uefi_signed.crt/' /etc/kolla/ironic-conductor/ironic.conf
@@ -81,5 +79,5 @@ export OS_TEST_TIMEOUT=3000
 net_id=$(neutron net-list -F id -f value)
 sed -i "s/11.11.11.11.11/$net_id/g" /home/citest/gate-test/tempest/etc/tempest.conf
 sudo -E stestr -vvv --debug --log-file /home/citest/gate_logs/tox.logs run --serial ironic_standalone.test_basic_ops.BaremetalIlo5UefiHTTPSWholediskHttpsLink.test_ip_access_to_server
-
+docker exec -it ironic_conductor python3 /root/remove_tls.py $ilo_ip
 echo "*********Completed 'ilo5-uefi-https' gate*************"
