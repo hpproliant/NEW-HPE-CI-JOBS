@@ -1,5 +1,8 @@
 #!/bin/bash
+env
+set -e
 set -x
+set -o pipefail
 
 echo "Cherry-picking patch inside ironic containers"
 sed -i -e "s|reference|$1|g" /home/citest/NEW-HPE-CI-JOBS/Dockerfiles/ironic-conductor-dockerfile
