@@ -54,6 +54,9 @@ sudo sed -i '/^\[ilo\]$/,/^\[/ s/^use_web_server_for_images = true/use_web_serve
 sudo sed -i "/^\[deploy\]$/,/^\[/ s/^http_url = http:\/\/$my_ip:8089/http_url = https:\/\/$my_ip:443/" /etc/kolla/ironic-conductor/ironic.conf
 docker restart ironic_conductor
 
+echo "Tempest changes."
+sed -i "s/http:\/\/169.16.1.40:9000\/rhel009_wholedisk_image.qcow2/https:\/\/$my_ip:443\/rhel009_wholedisk_image.qcow2/g" /home/citest/gate-test/tempest/etc/tempest.conf
+
 neutron subnet-create --name ext-subnet --allocation-pool start=$str,end=$end --disable-dhcp --gateway 169.16.1.40 baremetal 169.16.1.0/24
 
 sleep 5
