@@ -42,6 +42,10 @@ EOF
 sudo cp /tmp/dhcpd.conf /etc/dhcp/dhcpd.conf
 sudo systemctl restart dhcpd.service
 
+echo "Ironic changes."
+sudo sed -i '/^\[ilo\]$/,/^\[/ s/^use_web_server_for_images = true/use_web_server_for_images = true\nkernel_append_params = \"ipa-insecure=True\"/' /etc/kolla/ironic-conductor/ironic.conf
+docker restart ironic_conductor
+
 neutron subnet-create --name ext-subnet --allocation-pool start=$str,end=$end --disable-dhcp --gateway 169.16.1.40 baremetal 169.16.1.0/24
 
 sleep 5
