@@ -82,5 +82,8 @@ cd /home/citest/gate-test/tempest
 export OS_TEST_TIMEOUT=3000
 net_id=$(neutron net-list -F id -f value)
 sed -i "s/11.11.11.11.11/$net_id/g" /home/citest/gate-test/tempest/etc/tempest.conf
-sudo -E stestr -vvv --debug --log-file /home/citest/gate_logs/tox.logs run --serial ironic_standalone.test_basic_ops.BaremetalIlo5UefiHTTPSWholediskHttpsLink.test_ip_access_to_server
+sudo -E stestr -vvv --debug run --serial ironic_standalone.test_basic_ops.BaremetalIlo5UefiHTTPSWholediskHttpsLink.test_ip_access_to_server
+if [ $? -ne 0 ]; then
+    exit 1
+fi
 echo "*********Completed 'ilo5-uefi-https' gate*************"
