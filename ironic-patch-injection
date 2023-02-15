@@ -1,0 +1,11 @@
+#!/bin/bash
+env
+set -e
+set -x
+set -o pipefail
+
+echo "Cherry-picking patch inside ironic containers"
+cd /citest/ironic
+git pull origin master
+git fetch https://review.opendev.org/openstack/ironic $1 && git cherry-pick FETCH_HEAD
+pip3 install .
