@@ -49,7 +49,7 @@ sleep 10
 
 echo "Create neutron network."
 openstack network create  --provider-network-type flat --provider-physical-network provider --share baremetal
-neutron subnet-create --name ext-subnet --allocation-pool start=$str,end=$end --disable-dhcp --gateway 169.16.1.40 baremetal 169.16.1.0/24
+openstack subnet create --allocation-pool start=$str,end=$end --no-dhcp --gateway 169.16.1.40 --network baremetal ext-subnet --subnet-range 169.16.1.0/24
 
 echo "Configure external DHCP."
 docker stop ironic_dnsmasq
@@ -83,7 +83,7 @@ openstack baremetal node power off $NODE
 echo "Executing gate test."
 cd /home/citest/gate-test/tempest
 export OS_TEST_TIMEOUT=3000
-net_id=$(neutron net-list -F id -f value)
+net_id=$(openstack network list -f value -c ID)
 sed -i "s/11.11.11.11.11/$net_id/g" /home/citest/gate-test/tempest/etc/tempest.conf
 sed -i "s/http:\/\/169.16.1.40:9000\/rhel009_wholedisk_image.qcow2/https:\/\/$myip:443\/rhel009_wholedisk_image.qcow2/g" /home/citest/gate-test/tempest/etc/tempest.conf
 sudo -E stestr -vvv --debug run --serial ironic_standalone.test_basic_ops.BaremetalIlo5UefiHTTPSWholediskHttpsLink.test_ip_access_to_server
