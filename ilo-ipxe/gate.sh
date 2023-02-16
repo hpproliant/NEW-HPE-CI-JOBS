@@ -6,9 +6,6 @@ set -o pipefail
 
 echo "***********Running ilo-ipxe gate**********"
 
-echo "Allocating molteniron node."
-/home/citest/NEW-HPE-CI-JOBS/molteniron/allocate_molten.py $molten_id Gen9 loose
-
 echo "Setting gate environment."
 myip=$(ip -f inet addr show eth0 | sed -En -e 's/.*inet ([0-9.]+).*/\1/p')
 ilo_ip=$(cat /home/citest/hardware_info | awk '{print $1}')
@@ -17,7 +14,6 @@ pool=$(cat /home/citest/hardware_info | awk '{print $3}')
 str=$(echo $pool|cut -d "," -f 1)
 end=$(echo $pool|cut -d "," -f 2)
 patch_id=$1
-molten_id=$2
 
 echo "Injecting ironic patch."
 docker cp /home/citest/NEW-HPE-CI-JOBS/ironic-patch-injection ironic_conductor:/citest
