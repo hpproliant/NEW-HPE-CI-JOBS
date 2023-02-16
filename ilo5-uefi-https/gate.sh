@@ -14,7 +14,6 @@ pool=$(cat /home/citest/hardware_info | awk '{print $3}')
 str=$(echo $pool|cut -d "," -f 1)
 end=$(echo $pool|cut -d "," -f 2)
 patch_id=$1
-touch /tmp/ilo5-uefi-https
 
 echo "Injecting ironic patch."
 docker cp /home/citest/NEW-HPE-CI-JOBS/ironic-patch-injection ironic_conductor:/citest

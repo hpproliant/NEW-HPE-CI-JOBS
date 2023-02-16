@@ -1,11 +1,11 @@
 #!/usr/bin/python3
 import subprocess
 import json
+import sys
 
 print("Molteniron release node...")
+owner_name = sys.argv[1]
 try:
-    with open('/tmp/molten_id', 'r') as f:
-        owner_name = f.read().replace('\n', '')
     out = subprocess.check_output(['bash', '-c', "molteniron release '%s'" % owner_name])
     out_d = json.loads(out)
     if int(out_d['status']) == 200:

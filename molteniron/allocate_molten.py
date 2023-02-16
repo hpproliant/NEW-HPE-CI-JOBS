@@ -27,8 +27,6 @@ while True:
             hardware_info.write(allocation_pool)
             hardware_info.close()
             print("Node allocated Successfully")
-            with open("/tmp/molten_id", "w") as f:
-                f.write(owner_name)
             break
         else:
             raise Exception('No nodes')
