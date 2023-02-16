@@ -2,7 +2,12 @@
 env
 set -e
 set -x
-set -o pipefail
+
+report_failed() {
+  touch /tmp/job-failed
+}
+
+trap "report_failed" ERR
 
 echo "***********Running ilo-virtual-media gate**********"
 
@@ -18,8 +23,8 @@ patch_id=$1
 echo "Injecting ironic patch."
 docker cp /home/citest/NEW-HPE-CI-JOBS/ironic-patch-injection ironic_conductor:/citest
 docker cp /home/citest/NEW-HPE-CI-JOBS/ironic-patch-injection ironic_api:/citest
-docker exec -it -u root ironic_conductor bash /citest/ironic-patch-injection $patch_id
-docker exec -it -u root ironic_api bash /citest/ironic-patch-injection $patch_id
+docker exec -u root ironic_conductor bash /citest/ironic-patch-injection $patch_id
+docker exec -u root ironic_api bash /citest/ironic-patch-injection $patch_id
 
 echo "Making other ironic changes."
 sudo sed -i '/^\[ilo\]$/,/^\[/ s/^use_web_server_for_images = true/use_web_server_for_images = true\nkernel_append_params = \"ipa-insecure=True\"/' /etc/kolla/ironic-conductor/ironic.conf
@@ -68,6 +73,7 @@ sed -i "s/11.11.11.11.11/$net_id/g" /home/citest/gate-test/tempest/etc/tempest.c
 sudo -E stestr -vvv --debug run --serial ironic_standalone.test_basic_ops.BaremetalIloDirectWholediskHttpLink.test_ip_access_to_server
 openstack baremetal node list|grep "active"
 if [ $? -ne 0 ]; then
-    exit 1
+    echo "CI has failed. Will purposefully raise error."
+    failed
 fi
 echo "***********ilo-virtual-media gate: PASSED**********"

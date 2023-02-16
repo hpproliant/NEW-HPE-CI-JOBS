@@ -2,7 +2,13 @@
 env
 set -e
 set -x
-set -o pipefail
+
+report_failed() {
+  touch /tmp/job-failed
+}
+
+trap "report_failed" ERR
+
 
 echo "*********Started running 'ilo5-uefi-https' gate*************"
 
@@ -18,8 +24,8 @@ patch_id=$1
 echo "Injecting ironic patch."
 docker cp /home/citest/NEW-HPE-CI-JOBS/ironic-patch-injection ironic_conductor:/citest
 docker cp /home/citest/NEW-HPE-CI-JOBS/ironic-patch-injection ironic_api:/citest
-docker exec -it -u root ironic_conductor bash /citest/ironic-patch-injection $patch_id
-docker exec -it -u root ironic_api bash /citest/ironic-patch-injection $patch_id
+docker exec -u root ironic_conductor bash /citest/ironic-patch-injection $patch_id
+docker exec -u root ironic_api bash /citest/ironic-patch-injection $patch_id
 
 echo "Generate TLS cert."
 mkdir /home/citest/ssl_files
@@ -85,6 +91,7 @@ sed -i "s/http:\/\/169.16.1.40:9000\/rhel009_wholedisk_image.qcow2/https:\/\/$my
 sudo -E stestr -vvv --debug run --serial ironic_standalone.test_basic_ops.BaremetalIlo5UefiHTTPSWholediskHttpsLink.test_ip_access_to_server
 openstack baremetal node list|grep "active"
 if [ $? -ne 0 ]; then
-    exit 1
+    echo "CI has failed. Will purposefully raise error."
+    failed
 fi
 echo "*********ilo5-uefi-https gate: PASSED*************"

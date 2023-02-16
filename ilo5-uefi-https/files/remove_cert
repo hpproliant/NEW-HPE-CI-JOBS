@@ -1,4 +1,4 @@
 #!/bin/bash
 ilo_ip=$(cat /home/citest/hardware_info | awk '{print $1}')
 docker cp /home/citest/NEW-HPE-CI-JOBS/ilo5-uefi-https/files/remove_tls.py ironic_conductor:/root/
-docker exec -it ironic_conductor python3 /root/remove_tls.py $ilo_ip
+docker exec ironic_conductor python3 /root/remove_tls.py $ilo_ip
