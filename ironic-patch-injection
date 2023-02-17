@@ -4,8 +4,16 @@ set -e
 set -x
 set -o pipefail
 
+echo "Setting up proxy"
+export http_proxy=http://web-proxy.houston.hpecorp.net:8080
+export https_proxy=http://web-proxy.houston.hpecorp.net:8080
+export HTTP_PROXY=http://web-proxy.houston.hpecorp.net:8080
+export HTTPS_PROXY=http://web-proxy.houston.hpecorp.net:8080
+export no_proxy=`echo 169.16.1.{1..255} | sed 's/ /,/g'`,15.213.141.18
+
 echo "Cherry-picking patch inside ironic containers"
 cd /citest/ironic
 git pull origin master
 git fetch https://review.opendev.org/openstack/ironic $1 && git cherry-pick FETCH_HEAD
 pip3 install .
+ironic-dbsync --config-file=/etc/ironic/ironic.conf upgrade
