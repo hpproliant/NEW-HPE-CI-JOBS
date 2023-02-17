@@ -29,13 +29,13 @@ docker exec -u root ironic_api bash /citest/ironic-patch-injection $patch_id
 
 echo "Generate TLS cert."
 mkdir /home/citest/ssl_files
-openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /home/citest/ssl_files/uefi_signed.key -out /home/citest/ssl_files/uefi_signed.crt -subj "/C=IN/ST=K/CN=$my_ip"
+openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /home/citest/ssl_files/uefi_signed.key -out /home/citest/ssl_files/uefi_signed.crt -subj "/C=IN/ST=K/CN=$myip"
 
 echo "Making other ironic changes."
-docker exec -it -u root ironic_conductor mkdir /root/ssl_files
+docker exec -u root ironic_conductor mkdir /root/ssl_files
 docker cp /home/citest/ssl_files/uefi_signed.crt ironic_conductor:/root/ssl_files/
 docker cp /home/citest/ssl_files/uefi_signed.key ironic_conductor:/root/ssl_files/
-docker exec -it -u root ironic_http mkdir /root/ssl_files
+docker exec -u root ironic_http mkdir /root/ssl_files
 docker cp /home/citest/ssl_files/uefi_signed.crt ironic_http:/root/ssl_files/
 docker cp /home/citest/ssl_files/uefi_signed.key ironic_http:/root/ssl_files/
 sudo rm -f /etc/kolla/ironic-http/httpd.conf
