@@ -78,7 +78,7 @@ sudo systemctl restart dhcpd.service
 echo "Creating ironic node."
 openstack baremetal node create --driver ilo5 --driver-info ilo_address=$ilo_ip --driver-info ilo_username=Administrator --driver-info ilo_password=weg0th@ce@r --driver-info ilo_verify_ca=False --boot-interface ilo-uefi-https --deploy-interface direct --management-interface ilo5 
 NODE=$(openstack baremetal node list | grep -v UUID | grep "\w" | awk '{print $2}' | tail -n1)
-openstack baremetal node set --driver-info deploy_kernel=https://$myip:443/ironic-agent.kernel --driver-info deploy_ramdisk=https://$myip:443/ironic-agent.initramfs --driver-info bootloader=https://$myip:443/ir-deploy-redfish.efiboot --instance-info image_source=https://$myip:443/rhel009_wholedisk_image.qcow2 --instance-info image_checksum=6d2a8427a4608d1fcc7aa2daed8ad5c6 --instance-info root_gb=25  --property capabilities='boot_mode:uefi' --property cpus=1 --property memory_mb=24288 --property local_gb=40 --property cpu_arch=x86_64 $NODE
+openstack baremetal node set --driver-info agent_verify_ca=False --driver-info deploy_kernel=https://$myip:443/ironic-agent.kernel --driver-info deploy_ramdisk=https://$myip:443/ironic-agent.initramfs --driver-info bootloader=https://$myip:443/ir-deploy-redfish.efiboot --instance-info image_source=https://$myip:443/rhel009_wholedisk_image.qcow2 --instance-info image_checksum=6d2a8427a4608d1fcc7aa2daed8ad5c6 --instance-info root_gb=25  --property capabilities='boot_mode:uefi' --property cpus=1 --property memory_mb=24288 --property local_gb=40 --property cpu_arch=x86_64 $NODE
 openstack baremetal port create --node $NODE $mac
 openstack baremetal node manage $NODE
 sleep 10
