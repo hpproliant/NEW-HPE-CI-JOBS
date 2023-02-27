@@ -42,10 +42,10 @@ sudo rm -f /etc/kolla/ironic-http/httpd.conf
 sudo cp /home/citest/NEW-HPE-CI-JOBS/ilo5-uefi-https/files/httpd.conf /etc/kolla/ironic-http/httpd.conf
 sudo sed -i "s/8.8.8.8/$myip/g" /etc/kolla/ironic-http/httpd.conf
 sudo sed -i '/^\[DEFAULT\]$/,/^\[/ s/^debug = True/webserver_verify_ca = \/root\/ssl_files\/uefi_signed.crt/' /etc/kolla/ironic-conductor/ironic.conf
-#sudo sed -i '/^\[ilo\]$/,/^\[/ s/^use_web_server_for_images = true/use_web_server_for_images = true\nkernel_append_params = \"ipa-insecure=True ipa-insecure=1\"/' /etc/kolla/ironic-conductor/ironic.conf
-#sudo sed -i '/^\[ilo\]$/,/^\[/ s/^use_web_server_for_images = true/use_web_server_for_images = true\nkernel_append_params = \"ipa-insecure=True ipa-insecure=1\"/' /etc/kolla/ironic-conductor/ironic.conf
+sudo sed -i '/^\[ilo\]$/,/^\[/ s/^use_web_server_for_images = true/use_web_server_for_images = true\nkernel_append_params = \"ipa-insecure=True ipa-insecure=1\"/' /etc/kolla/ironic-conductor/ironic.conf
+sudo sed -i '/^\[ilo\]$/,/^\[/ s/^use_web_server_for_images = true/use_web_server_for_images = true\nkernel_append_params = \"ipa-insecure=True ipa-insecure=1\"/' /etc/kolla/ironic-conductor/ironic.conf
 sudo sed -i "/^\[deploy\]$/,/^\[/ s/^http_url = http:\/\/$myip:8089/http_url = https:\/\/$myip:443/" /etc/kolla/ironic-conductor/ironic.conf
-#sudo sed -i "/^\[pxe\]$/,/^\[/ s/^kernel_append_params = nofb nomodeset vga=normal console=tty0 console=ttyS0,115200n8/kernel_append_params = nofb nomodeset vga=normal console=tty0 console=ttyS0,115200n8 ipa-insecure=1/" /etc/kolla/ironic-conductor/ironic.conf
+sudo sed -i "/^\[pxe\]$/,/^\[/ s/^kernel_append_params = nofb nomodeset vga=normal console=tty0 console=ttyS0,115200n8/kernel_append_params = nofb nomodeset vga=normal console=tty0 console=ttyS0,115200n8 ipa-insecure=1/" /etc/kolla/ironic-conductor/ironic.conf
 sudo sed -i "/^\[agent\]$/,/^\[/ s/^deploy_logs_collect = always/deploy_logs_collect = always\nverify_ca = False\n/" /etc/kolla/ironic-conductor/ironic.conf
 
 docker restart ironic_http
