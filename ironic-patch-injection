@@ -1,8 +1,10 @@
 #!/bin/bash
 env
-set -e
 set -x
-set -o pipefail
+
+REF=$1
+PATCH=$(echo $REF|cut -d '/' -f4)
+PATCHSET=$(echo $REF|cut -d '/' -f5)
 
 echo "Setting up proxy"
 export http_proxy=http://web-proxy.houston.hpecorp.net:8080
@@ -15,7 +17,32 @@ echo "Cherry-picking patch inside ironic containers"
 cd /citest
 rm -rf ironic
 git clone https://review.opendev.org/openstack/ironic
-cd ironic
-git fetch https://review.opendev.org/openstack/ironic $1 && git cherry-pick FETCH_HEAD
-pip3 install .
+
+if [ $? -ne 0 ]; then
+    echo "Git clone failed. Attempting direct download..."
+    wget --no-check-certificate https://review.opendev.org/changes/openstack%2Fironic~$PATCH/revisions/$PATCHSET/archive?format=tar -O i.tar
+    if [ $? -ne 0 ]; then
+	 exit 1
+    fi
+    mkdir ironic
+    tar -xvf i.tar -C ironic
+    cd ironic
+    pip3 install .
+else
+    cd ironic
+    git fetch https://review.opendev.org/openstack/ironic $REF && git cherry-pick FETCH_HEAD
+    if [ $? -ne 0 ]; then
+        echo "Git fetch failed. Attempting direct download..."
+        wget --no-check-certificate https://review.opendev.org/changes/openstack%2Fironic~$PATCH/revisions/$PATCHSET/archive?format=tar -O i.tar
+        if [ $? -ne 0 ]; then
+           exit 1
+        fi
+        mkdir ironic
+        tar -xvf i.tar -C ironic
+        cd ironic
+        pip3 install .
+    fi
+    pip3 install .
+fi
+
 ironic-dbsync --config-file=/etc/ironic/ironic.conf upgrade
