@@ -16,7 +16,7 @@ trap "handle_exception" EXIT
 echo "***********Running ilo-virtual-media gate**********"
 
 echo "Setting gate environment."
-uuid=$1
+uuid=$2
 myip=$(ip -f inet addr show eth0 | sed -En -e 's/.*inet ([0-9.]+).*/\1/p')
 ilo_ip=$(cat /home/citest/hardware_info | awk '{print $1}')
 mac=$(cat /home/citest/hardware_info | awk '{print $2}')

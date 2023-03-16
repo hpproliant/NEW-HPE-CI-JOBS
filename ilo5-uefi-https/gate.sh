@@ -20,7 +20,7 @@ trap "handle_exception" EXIT
 echo "*********Started running 'ilo5-uefi-https' gate*************"
 
 echo "Setting gate environment."
-uuid=$1
+uuid=$2
 cert_flag=0
 myip=$(ip -f inet addr show eth0 | sed -En -e 's/.*inet ([0-9.]+).*/\1/p')
 ilo_ip=$(cat /home/citest/hardware_info | awk '{print $1}')
