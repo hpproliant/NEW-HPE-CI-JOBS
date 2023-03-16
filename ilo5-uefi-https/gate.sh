@@ -3,16 +3,25 @@ env
 set -e
 set -x
 
-report_failed() {
-  touch /tmp/job-failed
+handle_exception() {
+  c_out=$?
+  if [ $c_out -ne 0 ]; then
+    if [ $cert_flag -eq 1 ]; then
+      echo "Removing cert."
+      /home/citest/NEW-HPE-CI-JOBS/ilo5-uefi-https/files/remove_cert
+    fi
+    echo "Gate job failed. Releasing node..."
+    /home/citest/NEW-HPE-CI-JOBS/molteniron/release_molten.py $uuid
+  fi
 }
 
-trap "report_failed" ERR
-
+trap "handle_exception" EXIT
 
 echo "*********Started running 'ilo5-uefi-https' gate*************"
 
 echo "Setting gate environment."
+uuid=$1
+cert_flag=0
 myip=$(ip -f inet addr show eth0 | sed -En -e 's/.*inet ([0-9.]+).*/\1/p')
 ilo_ip=$(cat /home/citest/hardware_info | awk '{print $1}')
 mac=$(cat /home/citest/hardware_info | awk '{print $2}')
@@ -92,10 +101,12 @@ export OS_TEST_TIMEOUT=3000
 net_id=$(openstack network list -f value -c ID)
 sed -i "s/11.11.11.11.11/$net_id/g" /home/citest/gate-test/tempest/etc/tempest.conf
 sed -i "s/http:\/\/169.16.1.40:9000\/rhel009_wholedisk_image.qcow2/https:\/\/$myip:443\/rhel009_wholedisk_image.qcow2/g" /home/citest/gate-test/tempest/etc/tempest.conf
+cert_flag=1
 sudo -E stestr -vvv --debug run --serial ironic_standalone.test_basic_ops.BaremetalIlo5UefiHTTPSWholediskHttpsLink.test_ip_access_to_server
 openstack baremetal node list|grep "active"
-if [ $? -ne 0 ]; then
-    echo "CI has failed. Will purposefully raise error."
-    failed
-fi
+
+echo "Removing cert..."
+/home/citest/NEW-HPE-CI-JOBS/ilo5-uefi-https/files/remove_cert
+echo "Releasing node..."
+/home/citest/NEW-HPE-CI-JOBS/molteniron/release_molten.py $uuid
 echo "*********ilo5-uefi-https gate: PASSED*************"
