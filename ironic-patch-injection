@@ -20,7 +20,8 @@ git clone https://review.opendev.org/openstack/ironic
 
 if [ $? -ne 0 ]; then
     echo "Git clone failed. Attempting direct download..."
-    wget --no-check-certificate https://review.opendev.org/changes/openstack%2Fironic~$PATCH/revisions/$PATCHSET/archive?format=tar -O i.tar
+    rm -rf ironic
+    curl -k https://review.opendev.org/changes/openstack%2Fironic~$PATCH/revisions/$PATCHSET/archive?format=tar -o i.tar
     if [ $? -ne 0 ]; then
 	 exit 1
     fi
@@ -33,7 +34,9 @@ else
     git fetch https://review.opendev.org/openstack/ironic $REF && git cherry-pick FETCH_HEAD
     if [ $? -ne 0 ]; then
         echo "Git fetch failed. Attempting direct download..."
-        wget --no-check-certificate https://review.opendev.org/changes/openstack%2Fironic~$PATCH/revisions/$PATCHSET/archive?format=tar -O i.tar
+	cd ..
+	rm -rf ironic
+        curl -k https://review.opendev.org/changes/openstack%2Fironic~$PATCH/revisions/$PATCHSET/archive?format=tar -o i.tar
         if [ $? -ne 0 ]; then
            exit 1
         fi
